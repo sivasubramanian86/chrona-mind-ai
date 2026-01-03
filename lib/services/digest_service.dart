@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:chronamindai/models/digest.dart';
 import 'package:chronamindai/services/storage_service.dart';
 import 'package:flutter/foundation.dart';
@@ -79,14 +81,36 @@ class DigestService {
     required String sourceRef,
     String? content,
   }) async {
+    // Try API first
+    try {
+      final response = await http.post(
+        Uri.parse('${StorageService.baseUrl}/digests'),
+        headers: StorageService._headers,
+        body: jsonEncode({
+          'sourceType': sourceType.toString().split('.').last,
+          'sourceRef': sourceRef,
+          'content': content,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final digestData = data['digest'];
+        return Digest.fromJson(digestData);
+      }
+    } catch (e) {
+      debugPrint('API digest generation failed, using local fallback: $e');
+    }
+
+    // Fallback to local generation
     await Future.delayed(const Duration(seconds: 3));
-    
+
     final title = _extractTitle(sourceRef, content);
     final summary = _generateSummary(content ?? sourceRef);
     final takeaways = _generateTakeaways(content ?? sourceRef);
     final flashcards = _generateFlashcards(content ?? sourceRef);
-    
-    return Digest.create(
+
+    final digest = Digest.create(
       userId: userId,
       sourceType: sourceType,
       sourceRef: sourceRef,
@@ -96,6 +120,11 @@ class DigestService {
       flashcards: flashcards,
       estimatedReadTime: 10,
     );
+
+    // Save to local storage as fallback
+    await StorageService.saveDigest(digest.toJson());
+
+    return digest;
   }
 
   static String _extractTitle(String sourceRef, String? content) {

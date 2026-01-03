@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:chronamindai/models/simulation.dart';
 import 'package:chronamindai/services/storage_service.dart';
 import 'package:flutter/foundation.dart';
@@ -80,6 +82,57 @@ class SimulationService {
     required String optionA,
     required String optionB,
   }) async {
+    // Try API first
+    try {
+      final response = await http.post(
+        Uri.parse('${StorageService.baseUrl}/simulations'),
+        headers: StorageService._headers,
+        body: jsonEncode({
+          'title': title,
+          'description': description,
+          'optionA': optionA,
+          'optionB': optionB,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final simulationData = data['simulation'];
+
+        // Convert API response to frontend Simulation model
+        return Simulation.fromJson({
+          'id': simulationData['id'],
+          'userId': userId,
+          'title': simulationData['title'],
+          'description': simulationData['description'],
+          'rootChoice': {
+            'label': simulationData['title'],
+            'description': simulationData['description'],
+            'childChoices': [
+              {
+                'label': simulationData['optionA']['text'],
+                'description': 'Path A: ${simulationData['optionA']['text']}',
+                'outcomes': simulationData['optionA']['outcomes'].map((o) => o['description']).toList(),
+                'confidence': 0.65,
+              },
+              {
+                'label': simulationData['optionB']['text'],
+                'description': 'Path B: ${simulationData['optionB']['text']}',
+                'outcomes': simulationData['optionB']['outcomes'].map((o) => o['description']).toList(),
+                'confidence': 0.55,
+              }
+            ],
+            'confidence': 1.0,
+          },
+          'createdAt': simulationData['createdAt'],
+          'updatedAt': simulationData['updatedAt'],
+        });
+      }
+    } catch (e) {
+      debugPrint('API simulation creation failed, using local fallback: $e');
+    }
+
+    // Fallback to local generation
     await Future.delayed(const Duration(seconds: 2));
     
     final choiceA = SimulationNode.create(
@@ -103,12 +156,17 @@ class SimulationService {
       confidence: 1.0,
     );
     
-    return Simulation.create(
+    final simulation = Simulation.create(
       userId: userId,
       title: title,
       description: description,
       rootChoice: root,
     );
+
+    // Save to local storage as fallback
+    await StorageService.saveSimulation(simulation.toJson());
+
+    return simulation;
   }
 
   static List<String> _generateOutcomes(String choice, {required bool isPositive}) {
