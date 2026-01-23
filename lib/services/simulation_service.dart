@@ -11,7 +11,7 @@ class SimulationService {
     if (_cache != null) return _cache!;
     
     try {
-      final data = StorageService.getSimulations();
+      final data = await StorageService.getSimulations();
       _cache = data.map((json) => Simulation.fromJson(json)).toList();
       _cache!.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return _cache!;
@@ -86,7 +86,7 @@ class SimulationService {
     try {
       final response = await http.post(
         Uri.parse('${StorageService.baseUrl}/simulations'),
-        headers: StorageService._headers,
+        headers: {'Content-Type': 'application/json', if (StorageService.authToken != null) 'Authorization': 'Bearer ${StorageService.authToken}'},
         body: jsonEncode({
           'title': title,
           'description': description,

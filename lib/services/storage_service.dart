@@ -334,92 +334,15 @@ class StorageService {
       return false;
     }
   }
-}
-    } catch (e) {
-      debugPrint('Failed to save memories: $e');
-      return false;
-    }
-  }
 
-  static List<Map<String, dynamic>> getMemories() {
-    try {
-      final data = prefs.getString(_memoriesKey);
-      if (data == null) return [];
-      final decoded = jsonDecode(data);
-      return List<Map<String, dynamic>>.from(decoded as List);
-    } catch (e) {
-      debugPrint('Failed to get memories: $e');
-      return [];
-    }
-  }
-
-  static Future<bool> saveDigests(List<Map<String, dynamic>> digests) async {
-    try {
-      return await prefs.setString(_digestsKey, jsonEncode(digests));
-    } catch (e) {
-      debugPrint('Failed to save digests: $e');
-      return false;
-    }
-  }
-
-  static List<Map<String, dynamic>> getDigests() {
-    try {
-      final data = prefs.getString(_digestsKey);
-      if (data == null) return [];
-      final decoded = jsonDecode(data);
-      return List<Map<String, dynamic>>.from(decoded as List);
-    } catch (e) {
-      debugPrint('Failed to get digests: $e');
-      return [];
-    }
-  }
-
-  static Future<bool> saveSimulations(List<Map<String, dynamic>> simulations) async {
-    try {
-      return await prefs.setString(_simulationsKey, jsonEncode(simulations));
-    } catch (e) {
-      debugPrint('Failed to save simulations: $e');
-      return false;
-    }
-  }
-
-  static List<Map<String, dynamic>> getSimulations() {
-    try {
-      final data = prefs.getString(_simulationsKey);
-      if (data == null) return [];
-      final decoded = jsonDecode(data);
-      return List<Map<String, dynamic>>.from(decoded as List);
-    } catch (e) {
-      debugPrint('Failed to get simulations: $e');
-      return [];
-    }
-  }
-
-  static Future<bool> setOnboardingComplete(bool complete) async {
-    try {
-      return await prefs.setBool(_onboardingKey, complete);
-    } catch (e) {
-      debugPrint('Failed to set onboarding status: $e');
-      return false;
-    }
-  }
-
-  static bool isOnboardingComplete() {
-    try {
-      return prefs.getBool(_onboardingKey) ?? false;
-    } catch (e) {
-      debugPrint('Failed to get onboarding status: $e');
-      return false;
-    }
-  }
 
   static Future<String> exportAllData() async {
     try {
       final data = {
         'user': getUser(),
-        'memories': getMemories(),
-        'digests': getDigests(),
-        'simulations': getSimulations(),
+        'memories': getMemoriesSync(),
+        'digests': getDigestsSync(),
+        'simulations': getSimulationsSync(),
         'exportedAt': DateTime.now().toIso8601String(),
       };
       return jsonEncode(data);

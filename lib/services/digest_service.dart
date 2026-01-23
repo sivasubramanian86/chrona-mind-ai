@@ -11,7 +11,7 @@ class DigestService {
     if (_cache != null) return _cache!;
     
     try {
-      final data = StorageService.getDigests();
+      final data = await StorageService.getDigests();
       _cache = data.map((json) => Digest.fromJson(json)).toList();
       _cache!.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return _cache!;
@@ -85,7 +85,7 @@ class DigestService {
     try {
       final response = await http.post(
         Uri.parse('${StorageService.baseUrl}/digests'),
-        headers: StorageService._headers,
+        headers: {'Content-Type': 'application/json', if (StorageService.authToken != null) 'Authorization': 'Bearer ${StorageService.authToken}'},
         body: jsonEncode({
           'sourceType': sourceType.toString().split('.').last,
           'sourceRef': sourceRef,

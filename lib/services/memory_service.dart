@@ -9,7 +9,7 @@ class MemoryService {
     if (_cache != null) return _cache!;
     
     try {
-      final data = StorageService.getMemories();
+      final data = await StorageService.getMemories();
       _cache = data.map((json) => MemoryItem.fromJson(json)).toList();
       _cache!.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       return _cache!;
