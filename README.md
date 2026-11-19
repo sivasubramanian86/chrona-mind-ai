@@ -1,3 +1,8 @@
+> [!NOTE]
+> **OFFICIAL PORTFOLIO SHOWCASE BY SIVASUBRAMANIAN**  
+> **Original Author:** [Sivasubramanian](https://github.com/sivasubramanian86)  
+> *This repository is an open portfolio showcase. Unauthorized cloning, re-hosting, or submission to hackathons/competitions under another name is strictly prohibited.*
+
 # ChronaMindAI (EchoTwin)
 
 **ChronaMindAI** is a Flutter-based application designed to help users relive past memories with cinematic flair and simulate future choices. It features a privacy-first architecture with AI-powered insights and a comprehensive backend API for data persistence and processing.
